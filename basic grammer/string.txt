@@ -1,0 +1,7 @@
+String是字符串变量
+StringBuffer是字符串变量（线程安全）
+StringBuilder是字符串变量（线程不安全）
+
+String的速度要比stringbuffer的速度快得多
+但是string是不可变对象，而stringbuffer可以通过append（）和 insert（）重载
+stringBuilder是stringBuffer的一个简易替换，用在字符串缓冲区被单个线程使用的时候（这种情况很普遍）。如果可能，建议优先采用该类，因为在大多数实现中，它比 StringBuffer 要快。
