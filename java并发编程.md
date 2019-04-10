@@ -98,6 +98,7 @@ daemon线程：服务于用户（普通）线程，当JVM中只剩下守护线�
 synchronized关键字的实现是通过monitorenter和monitorexit指令来实现的
 
 ![](E:\java并发编程的艺术\synchronized.png)
+[synchronized](https://github.com/LyonDon/code-knowledge/blob/master/Photo/synchronized.png)
 
 Synchronized|Lock
 --|--
@@ -179,8 +180,9 @@ Synchronized|Lock
 这时就可以使用ConcurrentHashMap，通过将容器内的数据分段，为每一段数据分配一个锁，这样在访问不同段数据的时候，其他的段就不会被影响
 *	使用Segment分段锁，要点在于定位到Segment的数组的位置,这里使用的是再散列法
 
-![ConcurrentHashMap结构.png](C:\Users\Administrator\Desktop\java并发编程的艺术\ConcurrentHashMap结构.png)
+![ConcurrentHashMap结构.png](.\Photo\ConcurrentHashMap结构.png)
 
+[ConcurrentHashMap结构](https://github.com/LyonDon/code-knowledge/blob/master/Photo/ConcurrentHashMap%E7%BB%93%E6%9E%84.png)
 **操作**
 
 *	get():区别于一般的get（）在于，不需要加锁，因为将count，size等都定义为volatile型的（happens-before原则）
@@ -359,8 +361,7 @@ else
 *	ScheduledThreadPoolExecutor：具有多个线程的Executor
 *	SingleThreadScheduledExecutor：具有单个线程的Executor
 *	实现
-![ScheduledThreadPoolExecutor1.png](.\ScheduledThreadPoolExecutor1.png)
-
+[ScheduledThreadPoolExecutor1](https://github.com/LyonDon/code-knowledge/blob/master/Photo/ScheduledThreadPoolExecutor1.png)
 	*	DelayQueue的take（）实现（通过priority队列实现）
     	1.	获取Lock
     	2.	获取周期任务
