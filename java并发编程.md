@@ -98,7 +98,7 @@ daemon线程：服务于用户（普通）线程，当JVM中只剩下守护线�
 synchronized关键字的实现是通过monitorenter和monitorexit指令来实现的
 
 ![](E:\java并发编程的艺术\synchronized.png)
-[synchronized](https://github.com/LyonDon/code-knowledge/blob/master/Photo/synchronized.png)
+![](E:\java并发编程的艺术\synchronized.png)
 
 Synchronized|Lock
 --|--
