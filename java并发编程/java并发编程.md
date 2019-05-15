@@ -1,5 +1,7 @@
 [0.简介](#0)
 
+[0.1中断](#0.1)
+
 [1.线程join yeild wait sleep的区别](#1)
 
 [2.守护线程](#2)
@@ -7,6 +9,8 @@
 [3.线程的启动与终止](#3)
 
 [3.1.线程封闭](#3.1)
+
+[3.2.创建线程](#3.2)
 
 [4.volatile关键字](#4)
 
@@ -71,6 +75,17 @@
 	*	性能问题：频繁的上下文切换等	
 
 ***
+
+<h2 id='0.1'>中断</h2>
+
+对于中断的处理：
+
+*	传递InterruptedException
+
+*	恢复中断
+
+***
+
 ## <h2 id='1'>线程join yeild wait sleep的区别</h2>
 
 *	sleep：thread的方法，会让线程进入休眠状态并释放CPU，但是不会释放锁
@@ -125,6 +140,14 @@ daemon线程：服务于用户（普通）线程，当JVM中只剩下守护线�
 
 
 ***
+
+## <h2 id='3.2'>创建线程</h2>
+
+无限制创建线程的不足：
+
+*	线程的生命周期开销非常高
+*	资源消耗
+*	
 
 ## <h2 id='4'>volatile关键字
 如果一个字段被声明为volatile类型的话，则JMM保证其在不同的线程下看到的这个变量时一致的
@@ -321,7 +344,7 @@ Synchronized|Lock
 
 ## <h2 id='16'>工作窃取算法
 
-线程执行完任务后，为了避免空闲，会从其他线程获取任务来执行。使用双端队列来实现，避免冲突。
+线程执行完任务后，为了避免空闲，会从其他线程获取任务来执行。使用双端队列（Deque&BlockingQeque）来实现，避免冲突。
 
 *	提高了线程并发的执行效率
 *	但是存在线程中只有一个资源时出现冲突，同时创建多个线程和队列会消耗系统资源
@@ -360,12 +383,34 @@ compareAndSet(int usual,int want,int update)
 ## <h2 id='19'>CountDownLatch
 支持一个或多个线程等待其他线程完成工作
 
+~~~java
+public CountdownLatch(int count)
+
+public void await() throws InterruptedException { };\
+//调用await()方法的线程会被挂起，它会等待直到count值为0才继续执行
+
+public boolean await(long timeout, TimeUnit unit) throws InterruptedException { };  
+//和await()类似，只不过等待一定的时间后count值还没变为0的话就会继续执行
+
+public void countDown() { };
+//将count值减1
+~~~
+
+
+
 >	通过join（）实现。原理是不停的查询join线程是否存活，若是的话就让当前线程一直等待下去
 
 ***
 
 ## <h2 id='20'>同步屏障（CyclicBarrier）
 设置一个屏障，同时接受n个线程到达屏障并阻塞，只有最后一个线程到达的时候，屏障才会打开，被阻塞的线程才能继续运行
+
+构造方法：
+
+~~~java
+public CyclicBarrier(int parties)
+public CyclicBarrier(int parties，Runnable barrierApplication)//后一个参数是屏障到达后的执行线程
+~~~
 
 CountDownLatch|CyclicBarrier
 --|--
@@ -379,15 +424,78 @@ CountDownLatch|CyclicBarrier
 
 通过acquire（）和release（）两个方法获取和释放信号量
 
+#### 实现
+
+*	公平策略
+
+~~~java
+protected int tryAcquireShared(int acquires){
+	for(;;){
+    	if(hasQueuedPredecessors()){
+        	return -1;
+        }
+        int available=getState();
+        int remaining=available-acquires;
+        if(remaining<0||compareAndSetState(available,remaining)){
+        	return remaining;
+        }
+    }
+}
+~~~
+
+~~~java
+protected int tryReleaseShared(int releases){
+	for(;;){
+    	int current=getState();
+        int next=current+releases;
+        if(next<current){
+        	throw execption;
+        }
+        if(compareAndSetState(current,next)){
+        	return remaining;
+        }
+    }
+}
+~~~
+
+*	非公平策略
+
+~~~java
+final int nonfairTryAcquireShared(int acquires){
+	for(;;){
+    	int available=getState();
+        int remaining=available-acquires;
+         if(remaining<0||compareAndSetState(available,remaining)){
+        	return remaining;
+        }
+    }
+}
+~~~
+
+~~~java
+protected int tryReleaseShared(int releases){
+	for(;;){
+    	int current=getState();
+        int next=current+releases;
+        if(next<current){
+        	throw execption;
+        }
+        if(compareAndSetState(current,next)){
+        	return remaining;
+        }
+    }
+}
+~~~
+
 ***
-## <h2 id='22'>Exchanger
+## <h2 id='22'>Exchanger</h2>
 提供一个同步点供**两个**线程进行交换，若线程A先执行exchange（），则其会等待第二个线程执行exchange（）方法。当两个线程都到达同步点时，数据交换发生
 
 Exchanger在使用的时候应该配合Atomic实现原子化
 
 ***
 
-## <h2 id='23'>线程池
+## <h2 id='23'>线程池</h2>
 线程池执行任务的步骤
 
 ~~~java
@@ -416,7 +524,7 @@ else
 
 ***
 
-## <h2 id='24'>Executor框架
+## <h2 id='24'>Executor框架</h2>
 
 #### 两级调度模型
 
@@ -441,17 +549,19 @@ else
 
 ![ScheduledThreadPoolExecutor1.png](.\Photo\ScheduledThreadPoolExecutor1.png)
 
-	*	DelayQueue的take（）实现（通过priority队列实现）
+*	DelayQueue的take（）实现（通过priority队列实现）
 	
     	1.	获取Lock
     	2.	获取周期任务
     	3.	释放Lock
 
-	*	DelayQueue的add（）实现（通过priority队列实现）
+*	DelayQueue的add（）实现（通过priority队列实现）
     
     	1.	获取Lock
     	2.	添加任务
     	3.	释放Lock
+
+[Executor,Executors和Executor Service的区别](https://yemengying.com/2017/03/17/difference-between-executor-executorService/)
 
 ##### Futrue接口
 
