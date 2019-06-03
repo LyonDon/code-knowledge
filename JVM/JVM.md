@@ -1031,4 +1031,80 @@ java规范没有规定什么时候执行加载操作，由虚拟机自行决定�
 
 <h2 id="7.2">方法调用</h2>
 
-<h3 id="7.2.1">
+不同于方法执行，方法调用唯一的任务就是确定被调用方法的版本
+
+<h3 id="7.2.1">解析</h3>
+
+>调用目标在程序代码写好、编译器进行编译时就必须确定下来，这类方法调用称为解析
+
+java虚拟机中提供的方法调用字节码指令
+
+*	invokestatic：调用静态方法
+*	invokespecial：调用实例构造器`<init>`方法,私有方法和父类方法
+*	invokevirtual：调用所有的虚方法
+*	invokeinterface：调用接口方法
+*	invokedynamic：先在运行时动态解析出调用电限定符所引用的方法，然后在执行该方法
+
+<h3 id="7.2.2">分派</h3>
+
+>解析调用是一个静态的过程，在编译期就完全确定；而分派调用可能是静态也可能是动态。分派是多态性的体现
+
+*	静态分派
+
+    *	静态类型和实际类型
+    ~~~java
+    Human man=new Man()
+    man=new Woman()
+    //实际类型变化
+    ~~~
+    ~~~java
+    sr.sayHello((Man)man)
+    sr.sayHello((Woman)man)
+    //静态类型变化
+    ~~~
+
+	>静态类型的变化仅仅在使用阶段发生，变量本身的静态类型不会变化
+	>编译阶段，javac编译器会根据参数的静态类型决定重载哪个版本
+
+	*	重载的优先级
+
+	本类型->自动类型转换
+    char->int->long->Character->Serializable->Object->char...（可变长度参数列表）
+
+*	动态分派
+
+**静态分派对应重载，动态分派对应重写**
+
+*	重写的本质
+
+	>由于invokevirtual指令执行的第一步就是在运行期确定接受者的实际类型，所以两次调用过程中的invokevirtual指令将常量池中的类方法符号引用解析到了不同的直接引用上
+
+*	单分派与多分派
+
+	>java语言是一门静态多分派，动态单分派的语言
+
+<h3 id="7.2.3">动态类型语言支持</h3>
+
+**JDK7中invokedynamic指令的出现，使得JDK实现了对于动态类型语言的支持**
+
+*	动态类型语言
+	>类型检查主体在运行期而不是编译期，在运行期确定类型
+
+**java语言无法将函数作为一个参数传递**
+
+*	MethodHandle机制
+	>为了解决除了invokedynamic之类之外的另外四条invoke指令被固化在java虚拟机中的问题，使得查找目标方法被释放到代码层面，增加程序员的自由度
+
+	reflection和MethodHandle的区别
+
+Reflection|MethodHandl
+:--:|:--:
+模拟java代码层次的方法调用|模拟字节码层次的方法调用
+java.lang.reflect.Method中包含的信息更多，重量级|java.lang.invoke.MethodHandle包含的信息较少，轻量级
+不支持|可以进行虚拟机层面的各种优化
+
+*	iovokedynamic指令
+	
+    **目的和MethodDynamic机制相同，一个是在代码层面的变化，一个是在虚拟机指令层面的变化**
+    
+    [invokedynamic指令详解](https://www.infoq.cn/article/Invokedynamic-Javas-secret-weapon)
