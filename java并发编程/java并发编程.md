@@ -110,7 +110,7 @@ daemon线程：服务于用户（普通）线程，当JVM中只剩下守护线�
 
 ***
 
-## <h2 id='3'>线程的启动与终止
+## <h2 id='3'>线程的启动与终止</h2>
 *	线程的启动：通过start（）方法实现，start方法就是将当前线程同步告知Java虚拟机
 *	线程的终止：
 
@@ -147,10 +147,20 @@ daemon线程：服务于用户（普通）线程，当JVM中只剩下守护线�
 
 *	线程的生命周期开销非常高
 *	资源消耗
-*	
 
-## <h2 id='4'>volatile关键字
+
+## <h2 id='4'>volatile关键字</h2>
+
 如果一个字段被声明为volatile类型的话，则JMM保证其在不同的线程下看到的这个变量时一致的
+
+volatile变量的两大特性
+
+*	保证此变量对于所有线程的可见性
+*	禁止指令重排序优化（实现有序性）
+
+	*	底层实现：指令重排无法越过内存屏障
+
+**但是,volatile并不保证原子性操作。这使得虽然volatile变量不存在一致性问题，但是在并发环境下依然不安全**
 
 **通过LOCK指令实现，访问volatile变量时不会执行加锁操作**
 
@@ -188,9 +198,10 @@ daemon线程：服务于用户（普通）线程，当JVM中只剩下守护线�
 
 ***
 
+## <h2 id='5'>synchronized关键字</h2>
 
+>通过 “ 一个变量在同一时刻只允许一个线程对其进行lock操作 ”来实现有序性
 
-## <h2 id='5'>synchronized关键字
 synchronized关键字的实现是通过monitorenter和monitorexit指令来实现的
 
 ![synchronized.png](.\Photo\synchronized.png)
@@ -210,14 +221,14 @@ Synchronized|Lock
 
 ***
 
-##	<h2 id='6'>双重锁检查与延迟初始化
+##	<h2 id='6'>双重锁检查与延迟初始化</h2>
 对象的初始化不一定是在其创建的同时完成的，延迟初始化是为降低系统启动时间，初始化所消耗的时间。只有在真正需要的时候才对其进行加载
 
 双重锁检查：在延迟初始化过程中，实际的初始化语句（在内存中会被看做三行代码，这里可能存在重排序），即A线程先将instance指向某一内存地址，但是还未初始化。这时，B线程检查（instance==null？），由于A线程的操作，B线程检查为假，则访问instance引用的对象。然而，这时的instance还未被初始化！
 
 ***
 
-## <h2 id='7'>线程间通信
+## <h2 id='7'>线程间通信</h2>
 
 *通过共享内存实现*
 
@@ -230,7 +241,7 @@ Synchronized|Lock
 	*	PipeReader
 ***
 
-## <h2 id='8'>线程池，连接池与对象池
+## <h2 id='8'>线程池，连接池与对象池</h2>
 **线程池**
 
 *	主要是因为thread的创建与撤销需要占用系统内存。java ee服务器在启动时，会创建许多可供使用的线程，需要的时候直接取用就行。处理过程中将任务添加到队列，然后在创建线程后自动启动这些任务
@@ -246,7 +257,7 @@ Synchronized|Lock
 
 ***
 
-## <h2 id='9'>ReentrantLock（重入锁）
+## <h2 id='9'>ReentrantLock（重入锁）</h2>
 支持重入的锁，就是可以被一个线程重复多次获取的锁。
 不同于synchronized的隐式重入，ReentrantLock是在调用Lock（）方法时，已经获取锁的线程能够再次调用Lock（）方法而不被阻塞
 
@@ -254,7 +265,7 @@ Synchronized|Lock
 *	非公平锁：反之
 ***
 
-## <h2 id='10'>ReentrantReadWriteLock（读写锁）
+## <h2 id='10'>ReentrantReadWriteLock（读写锁）</h2>
 维护了一对锁，读锁和写锁
 
 使用int型来维护读写的状态：**高16位表示读，低16位表示写**
@@ -262,7 +273,7 @@ Synchronized|Lock
 
 ***
 
-## <h2 id='11'>Condition接口
+## <h2 id='11'>Condition接口</h2>
 
 *	Object的监视器方法与Synchronized关键字配合，实现等待\通知模式
 *	Condition接口通过与Lock配合实现等待\通知模式
@@ -273,7 +284,7 @@ Synchronized|Lock
 
 
 ***
-## <h2 id='12'>ConcurrentHashMap
+## <h2 id='12'>ConcurrentHashMap</h2>
 
 **HashMap和HashTable在单线程条件下一样的，只有在多线程条件下，HashTable线程安全，因为使用了Synchronized关键字来实现，但是效率很低。HashMap在多线程的情况下entry链表可能会形成环形的结构，进而产生死锁**
 
@@ -289,6 +300,8 @@ Synchronized|Lock
 	
 	>happens-before：如果一个操作happens-before另一个操作，则其执行结果对另一个操作可见，且其执行顺序在另一个操作之前;若两个操作之间存在happens-before关系，则两者之间可以重排序，只要不影响happens-before规则即可
 
+*	时间的先后顺序和happens-before原则没有太大的关系，衡量并发安全问题时以happens-before原则为基准
+
 *	put()：扩容问题
 
 	*	只对单个segment进行扩容，而不是像HashMap一样对整个容器扩容。方法是：在插入元素之前，判断Segment中的HashEntry数组是否达到容量。若是达到的话，就创建一个两倍于当前容量的数组，使用再散列法将元素插入进去
@@ -303,7 +316,7 @@ Synchronized|Lock
 
 ***
 
-## <h2 id='13'>ConcurrentLinkedQueue
+## <h2 id='13'>ConcurrentLinkedQueue</h2>
 
 *写操作开销普遍大于读操作*
 
@@ -318,14 +331,14 @@ Synchronized|Lock
 
 ***
 
-## <h2 id='14'>阻塞队列
+## <h2 id='14'>阻塞队列</h2>
 支持两种附加操作的队列
 
 *	队列空时阻塞元素的获取
 *	队列满时阻塞元素的添加
 
 ***
-## <h2 id='15'>Fork&Join框架
+## <h2 id='15'>Fork&Join框架</h2>
 
 1.	将大任务通过fork分解为子任务
 2.	将子任务通过join合并为大任务的结果
@@ -342,7 +355,7 @@ Synchronized|Lock
 
 ***
 
-## <h2 id='16'>工作窃取算法
+## <h2 id='16'>工作窃取算法</h2>
 
 线程执行完任务后，为了避免空闲，会从其他线程获取任务来执行。使用双端队列（Deque&BlockingQeque）来实现，避免冲突。
 
@@ -350,7 +363,7 @@ Synchronized|Lock
 *	但是存在线程中只有一个资源时出现冲突，同时创建多个线程和队列会消耗系统资源
 ***
 
-## <h2 id='17'>原子操作类型
+## <h2 id='17'>原子操作类型</h2>
 
 *	原子更新类
 	*	AtomicInteger
