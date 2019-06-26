@@ -96,8 +96,10 @@
 
 *	join:一种特殊的wait,调用join即使一个线程阻塞并等待另一个线程执行完成。即如果一个线程A调用了thread.join()方法，则A需要等待thread执行完成才能从join()方法中返回
 
+
 **join的逻辑和“等待/通知”很相似,都是加锁，循环，终止。前导线程终止时，调用自身的notifyAll方法，通知处于等待状态的线程**
 
+wait，notify，notifyAll|
 
 ![线程状态转换图.png](.\线程状态转换图.png)
 
@@ -338,6 +340,17 @@ Synchronized|Lock
 
 *	公平锁：先申请先获取的锁（防止饥饿情况的发生）
 *	非公平锁：反之
+
+比较：
+
+|ReentrantLock|synchronized
+--|--|--
+锁的实现|JDK实现|JVM实现
+性能|大致相同（由于java8中对于synchronized的优化，引入了自旋锁等概念）
+等待可中断|可以|不能
+公平锁|多数公平，可以不公平|非公平
+锁绑定多个条件|可以绑定多个Condition对象
+
 ***
 
 ## <h2 id='10'>ReentrantReadWriteLock（读写锁）</h2>
@@ -352,6 +365,7 @@ Synchronized|Lock
 
 *	Object的监视器方法与Synchronized关键字配合，实现等待\通知模式
 *	Condition接口通过与Lock配合实现等待\通知模式
+	*	具体来说，是用lock（）先获得锁，然后通过await（），signal（）的方式，类似于synchronized的wait（），notify（）实现等待\通知。但是await（）可以释放锁
 
 **Condition实例的获取是通过绑定lock，调用lock（）方法实现的**
 
@@ -490,6 +504,28 @@ public void countDown() { };
 //将count值减1
 ~~~
 
+~~~java
+public class CountDownLatchTest {
+	public static void main(String[] args) throws InterruptedException {
+		final int totalThread = 10;
+
+		CountDownLatch countDownLatch = new CountDownLatch(totalThread);
+		ExecutorService service = Executors.newCachedThreadPool();
+		for (int i = 0; i < totalThread; i++) {
+			service.execute(() -> {
+
+					System.out.println("run");
+					
+					countDownLatch.countDown();
+				});
+			Thread.sleep(1000);
+		}
+		countDownLatch.await();
+		System.out.println("end");
+		service.shutdown();
+	}
+}
+~~~
 
 
 >	通过join（）实现。原理是不停的查询join线程是否存活，若是的话就让当前线程一直等待下去
@@ -509,7 +545,7 @@ public CyclicBarrier(int parties，Runnable barrierApplication)//后一个参数
 CountDownLatch|CyclicBarrier
 --|--
 计数器只能使用一次|支持计数器的重置，可以多次使用
-
+	
 ***
 
 ## <h2 id='21'>Semaphore（信号量）</h2>
