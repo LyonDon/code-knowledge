@@ -427,6 +427,8 @@ public enum 枚举名称 implements 接口名称{}
 
 **泛型仅仅是java的语法糖，不会影响java虚拟机生成的汇编代码，编译阶段，JVM就会将泛型的类型擦除，所以泛型不会对执行速度产生什么影响**
 
+>语法糖：指计算机语言中添加的某种语法，这种语法对于功能没有影响，更方便使用
+
 ~~~java
 A<T extends anyClass>a;
 ~~~
@@ -439,8 +441,8 @@ A<T extends anyClass>a;
 
 ~~~java
 A<?>a;
-A<? extends anyClass> a;//使用extends关键字指定了上界
-A<? super anyClass> a;//使用super关键字指定了下界
+A<? extends anyClass> a;//使用extends关键字指定了上界。换句话说就是，继承anyClass的任何子类
+A<? super anyClass> a;//使用super关键字指定了下界。就是接受anyClass的任何父类
 ~~~
 
 继承泛型类和泛型接口
