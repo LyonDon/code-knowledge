@@ -98,6 +98,9 @@
 
 **join的逻辑和“等待/通知”很相似,都是加锁，循环，终止。前导线程终止时，调用自身的notifyAll方法，通知处于等待状态的线程**
 
+
+![线程状态转换图.png](.\线程状态转换图.png)
+
 ***
 
 ## <h2 id='2'>守护线程</h2>
@@ -142,6 +145,77 @@ daemon线程：服务于用户（普通）线程，当JVM中只剩下守护线�
 ***
 
 ## <h2 id='3.2'>创建线程</h2>
+
+创建线程的三种方式：
+
+*	实现Runnable接口
+*	实现Callable接口
+*	继承Thread类
+
+~~~java
+
+/***
+ * 使用Runnable实现创建一个线程
+ * @author Administrator
+ *
+ */
+public class MyRunnable implements Runnable{
+
+	@Override
+	public void run() {
+		
+	}
+
+	public static void main(String[] args) {
+		MyRunnable runnable=new MyRunnable();
+		Thread t=new Thread(runnable);
+		t.start();
+	}
+}
+
+/**
+ * 使用Callable创建一个线程
+ * @author Administrator
+ *
+ */
+class MyCallable implements Callable<Integer>{
+
+	@Override
+	public Integer call() throws Exception {
+		return null;
+	}
+	
+	public static void main(String[] args) {
+		MyCallable callable=new MyCallable();
+		//使用FutureTask对Callable的返回值进行封装
+		FutureTask<Integer> task=new FutureTask<Integer>(callable);
+		Thread thread=new Thread(task);
+		thread.start();
+	}
+}
+
+/**
+ * 使用继承Thread的方式创建一个线程
+ * @author Administrator
+ *
+ */
+class MyThread extends Thread{
+	public void run() {
+	}
+	
+	public static void main(String[] args) {
+		MyThread thread=new MyThread();
+		thread.start();
+	}
+}
+~~~
+
+实现接口vs继承Thread类
+
+实现接口的方式会更好：
+
+*	java不支持多继承，实现接口可以多个
+*	不需要继承整个Thread类，开销太大
 
 无限制创建线程的不足：
 
@@ -204,7 +278,8 @@ volatile变量的两大特性
 
 synchronized关键字的实现是通过monitorenter和monitorexit指令来实现的
 
-![synchronized.png](.\Photo\synchronized.png)
+
+![synchronized.png](.\synchronized.png)
 
 
 Synchronized|Lock
@@ -291,7 +366,8 @@ Synchronized|Lock
 这时就可以使用ConcurrentHashMap，通过将容器内的数据分段，为每一段数据分配一个锁，这样在访问不同段数据的时候，其他的段就不会被影响
 *	使用Segment分段锁，要点在于定位到Segment的数组的位置,这里使用的是再散列法
 
-![ConcurrentHashMap结构.png](.\Photo\ConcurrentHashMap结构.png)
+
+![ConcurrentHashMap结构.png](.\ConcurrentHashMap结构.png)
 
 [ConcurrentHashMap结构](https://github.com/LyonDon/code-knowledge/blob/master/Photo/ConcurrentHashMap%E7%BB%93%E6%9E%84.png)
 **操作**
@@ -382,14 +458,19 @@ Synchronized|Lock
 
 ***
 
-## <h2 id='18'>CAS算法
+## <h2 id='18'>CAS算法</h2>
 是一种无锁算法，比较原始值是否等于预期值，若相等，则更新为更新值。否则重试或者放弃
 ~~~java
 compareAndSwap(int usual,int want,int update)
 compareAndSet(int usual,int want,int update)
 ~~~
 这一类的算法
-**但是存在一个问题，若果CAS不是基于内核的原子操作的话，则可能出现ABA问题。就是更新值的过程中，值被其他线程更改为更新的值，则此线程无法判断新值是不是CAS操作得到的。（可以通过设置标志位来处理）**
+
+存在问题：
+
+*	若果CAS不是基于内核的原子操作的话，则可能出现ABA问题：就是更新值的过程中，值被其他线程更改为更新的值，则此线程无法判断新值是不是CAS操作得到的。（可以通过设置标志位来处理）
+*	循环时间开销大：当CAS失败时，会一直进行尝试。若CAS一直不成功，可能会给CPU带来很大的开销
+*	只能保证一个共享变量的原子操作：多个变量共享操作时，CAS无法保证原子性，这时可以用锁来保证原子性
 
 ***
 
@@ -415,7 +496,7 @@ public void countDown() { };
 
 ***
 
-## <h2 id='20'>同步屏障（CyclicBarrier）
+## <h2 id='20'>同步屏障（CyclicBarrier）</h2>
 设置一个屏障，同时接受n个线程到达屏障并阻塞，只有最后一个线程到达的时候，屏障才会打开，被阻塞的线程才能继续运行
 
 构造方法：
@@ -431,7 +512,7 @@ CountDownLatch|CyclicBarrier
 
 ***
 
-## <h2 id='21'>Semaphore（信号量）
+## <h2 id='21'>Semaphore（信号量）</h2>
 
 控制同时访问资源的线程数量
 
@@ -560,7 +641,8 @@ else
 *	SingleThreadScheduledExecutor：具有单个线程的Executor
 *	实现
 
-![ScheduledThreadPoolExecutor1.png](.\Photo\ScheduledThreadPoolExecutor1.png)
+
+![ScheduledThreadPoolExecutor1.png](.\ScheduledThreadPoolExecutor1.png)
 
 *	DelayQueue的take（）实现（通过priority队列实现）
 	
