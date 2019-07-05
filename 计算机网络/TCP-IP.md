@@ -70,20 +70,20 @@ MAC和IP地址都具有唯一性，但只有IP地址具有层次性
 在下层的角度看，从上一层收到的包全部被认为是本层的数据
 
 
-![IMG_20180705_164511.jpg](C:\Users\Administrator\Desktop\markdown\TCP-IP\IMG_20180705_164511.jpg)
+
+![IMG_20180705_164511.jpg](.\IMG_20180705_164511.jpg)
 
 <<<<<<< HEAD
 每个包首部至少包含：发送端和接收端地址以及上一层的协议类型
 
-![IMG_20180705_163036.jpg](C:\Users\Administrator\Desktop\markdown\TCP-IP\IMG_20180705_163036.jpg)
+
+![IMG_20180705_163036.jpg](.\IMG_20180705_163036.jpg)
 
 =======
 每个包首部至少包含：发送端和接收
 端地址以及上一层的协议类型
 
-
-![IMG_20180705_163036.jpg](C:\Users\Administrator\Desktop\markdown\TCP-IP\IMG_20180705_163036.jpg)
-
+![IMG_20180705_163036.jpg](.\IMG_20180705_163036.jpg)
 
 >>>>>>> e8d2e2caf1b62d02306112ec2a80a5a5a27014f9
 

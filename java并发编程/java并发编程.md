@@ -99,7 +99,7 @@
 
 **join的逻辑和“等待/通知”很相似,都是加锁，循环，终止。前导线程终止时，调用自身的notifyAll方法，通知处于等待状态的线程**
 
-wait，notify，notifyAll|
+wait，notify，notifyAll
 
 ![线程状态转换图.png](.\线程状态转换图.png)
 
@@ -156,7 +156,7 @@ daemon线程：服务于用户（普通）线程，当JVM中只剩下守护线�
 
 ~~~java
 
-/***
+/**
  * 使用Runnable实现创建一个线程
  * @author Administrator
  *
@@ -165,7 +165,7 @@ public class MyRunnable implements Runnable{
 
 	@Override
 	public void run() {
-		
+
 	}
 
 	public static void main(String[] args) {
@@ -351,6 +351,10 @@ Synchronized|Lock
 公平锁|多数公平，可以不公平|非公平
 锁绑定多个条件|可以绑定多个Condition对象
 
+>自旋锁：是一个线程在请求共享资源的锁时进入忙循环一段时间，如果在这段时间内能够获得锁，就可以避免进入阻塞状态
+>
+>偏向锁：就是偏向于第一个获取锁的线程。当此线程获取锁，以后该线程进入对应的同步块就不需要再进行同步操作。偏向锁状态的解除发生在其他线程竞争锁时
+
 ***
 
 ## <h2 id='10'>ReentrantReadWriteLock（读写锁）</h2>
@@ -387,7 +391,7 @@ Synchronized|Lock
 **操作**
 
 *	get():区别于一般的get（）在于，不需要加锁，因为将count，size等都定义为volatile型的（happens-before原则）
-	
+
 	>happens-before：如果一个操作happens-before另一个操作，则其执行结果对另一个操作可见，且其执行顺序在另一个操作之前;若两个操作之间存在happens-before关系，则两者之间可以重排序，只要不影响happens-before规则即可
 
 *	时间的先后顺序和happens-before原则没有太大的关系，衡量并发安全问题时以happens-before原则为基准
