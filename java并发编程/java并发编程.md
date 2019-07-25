@@ -54,6 +54,8 @@
 
 [24.Executor框架](#24)
 
+[25.进程通信与线程通信](#25)
+
 
 ## <h2 id='0'>简介</h2>
 
@@ -155,12 +157,7 @@ daemon线程：服务于用户（普通）线程，当JVM中只剩下守护线�
 *	继承Thread类
 
 ~~~java
-
-/**
- * 使用Runnable实现创建一个线程
- * @author Administrator
- *
- */
+//使用Runnable实现创建一个线程
 public class MyRunnable implements Runnable{
 
 	@Override
@@ -174,19 +171,17 @@ public class MyRunnable implements Runnable{
 		t.start();
 	}
 }
+~~~
 
-/**
- * 使用Callable创建一个线程
- * @author Administrator
- *
- */
+~~~java
+//使用Callable创建一个线程
 class MyCallable implements Callable<Integer>{
 
 	@Override
 	public Integer call() throws Exception {
 		return null;
 	}
-	
+
 	public static void main(String[] args) {
 		MyCallable callable=new MyCallable();
 		//使用FutureTask对Callable的返回值进行封装
@@ -195,16 +190,14 @@ class MyCallable implements Callable<Integer>{
 		thread.start();
 	}
 }
+~~~
 
-/**
- * 使用继承Thread的方式创建一个线程
- * @author Administrator
- *
- */
+~~~java
+//使用继承Thread的方式创建一个线程
 class MyThread extends Thread{
 	public void run() {
 	}
-	
+
 	public static void main(String[] args) {
 		MyThread thread=new MyThread();
 		thread.start();
@@ -459,6 +452,8 @@ Synchronized|Lock
 
 ## <h2 id='17'>原子操作类型</h2>
 
+底层通过volatile和CAS实现。volatile保证可见性和禁止指令重排序，CAS保证原子性
+
 *	原子更新类
 	*	AtomicInteger
     *	AtomicLong
@@ -486,8 +481,10 @@ compareAndSet(int usual,int want,int update)
 
 存在问题：
 
-*	若果CAS不是基于内核的原子操作的话，则可能出现ABA问题：就是更新值的过程中，值被其他线程更改为更新的值，则此线程无法判断新值是不是CAS操作得到的。（可以通过设置标志位来处理）
+*	若果CAS不是基于内核的原子操作的话，则可能出现ABA问题：就是更新值的过程中，值被其他线程更改为更新的值，则此线程无法判断新值是不是CAS操作得到的。（可以通过设置版本号来处理，在变量前面追加版本号）。JDK1.5中提供了一个AtomicStampedReference来解决ABA，询问预期和标志位是否相同
+
 *	循环时间开销大：当CAS失败时，会一直进行尝试。若CAS一直不成功，可能会给CPU带来很大的开销
+
 *	只能保证一个共享变量的原子操作：多个变量共享操作时，CAS无法保证原子性，这时可以用锁来保证原子性
 
 ***
@@ -549,7 +546,11 @@ public CyclicBarrier(int parties，Runnable barrierApplication)//后一个参数
 CountDownLatch|CyclicBarrier
 --|--
 计数器只能使用一次|支持计数器的重置，可以多次使用
-	
+
+**CountdownLatch相当于是许多个线程都在执行，一个执行完了，等另一个。最后大家都执行完了，再继续接下来的操作**
+
+**CyclicBarrier相当于是多个线程正在执行，这时有一个屏障，到达屏障的线程都要阻塞。等到最后一个线程到达后，屏障才会打开，被阻塞的线程才能继续执行**
+
 ***
 
 ## <h2 id='21'>Semaphore（信号量）</h2>
@@ -663,6 +664,7 @@ else
 #### 两级调度模型
 
 *	上层：由Executor将任务分配到各个线程
+
 *	下层：有系统内核将线程分配到CPU执行
 
 #### Executor框架成员
@@ -696,7 +698,15 @@ else
     	2.	添加任务
     	3.	释放Lock
 
-[Executor,Executors和Executor Service的区别](https://yemengying.com/2017/03/17/difference-between-executor-executorService/)
+[Executor,Executors和ExecutorService的区别](https://yemengying.com/2017/03/17/difference-between-executor-executorService/)
+
+Executor|ExecutorService|Executors
+--|--|--
+java线程池的核心接口，用来并发执行提交的任务|Executor的子接口，提供了异步执行（Future）和关闭线程池的方法（shutdown（））|创建线程池的工厂类
+提供execute方法用来提交任务|提供submit方法用来提交任务
+execute方法没有返回值|submit方法返回一个Future对象
+不能取消任务|可是使用Future.cancel方法取消任务
+没有关闭线程池的方法|使用shutdown可以关闭线程池
 
 ##### Futrue接口
 
@@ -713,7 +723,7 @@ V get() throws Exception:
 V get(long time,TimeUnit unit) thrwows Exception
 ~~~
 
-*	用来表示一步计算的结果，当将Callable和Runnable的实现类提交给ThreadPoolExecutor时，返回的是一个Future task类型的对象（实现Future接口）
+*	用来表示一步计算的结果，当将Callable和Runnable的实现类提交给ThreadPoolExecutor时，返回的是一个FutureTask类型的对象（实现Future接口）
 
 *	FutureTask是Future的唯一实现类
 
@@ -733,10 +743,10 @@ public FutureTask(Runnable runnable,V result){}
 
 JDK5之后 任务分为两类，一种是实现了Runnable的类，另一种是实现了Callable的类。两个都可以被ExecutorService执行。区别在于，Runnable没有返回值，而Callable有返回值
 
-submit（Runnable x）|execute（Runnable x）
-    --|--
-    实现Callable接口|实现Runnable接口
-    返回一个Future对象，判断任务的执行情况|无返回值，无法判断执行情况
+submit（Callable x）|execute（Runnable x）
+:--:|:--:
+实现Callable接口|实现Runnable接口
+返回一个Future对象，判断任务的执行情况|无返回值，无法判断执行情况
 
 可以使用Executors工厂类将Runnable包装为Callable(以下为相关实现API)
 ~~~java
@@ -746,3 +756,46 @@ submit（Runnable x）|execute（Runnable x）
 ~~~java
 public static Callable<Object> callable(Runnable task,FutureTask result)
 ~~~
+
+## <h2 id='25'>进程通信&线程通信&线程同步</h2>
+
+#### 进程通信
+
+1.	管道（用pipe函数实现，在内存中开辟出一块缓冲区进行进程间通信，这块缓冲区称为管道）
+
+	*	pipe构造函数（接受一个长度为2的数组，pipe[0]和pipe[1]分别作为父子进程的读端和写端）
+	*	单向通信
+	*	通过血缘关系（父子进程）
+	*	生命周期随进程
+	*	依赖于文件系统（通过文件描述符）
+	*	内部提供了同步机制
+
+2.	信号量
+
+	*	控制同时访问资源的线程数量
+	*	只能进行等待和发送两种操作
+
+3.	消息队列（与信号量配合使用实现进程同步）（类似命名管道）
+
+	*	链表队列，进程间通信或者同一进程不同线程间的通信方式。消息队列本身是异步的，它允许接收者在发送者发出消息很长时间之后才从消息队列中取回消息。但是这样可能引发一个问题：即接受者需要轮询消息队列来获得消息，增加了系统开销
+
+4.	共享内存
+5.	套接字
+
+#### 线程通信
+
+*	等待\通知机制
+*	共享内存
+*	CountdownLatch
+*	CyclicBarrier
+*	信号量
+
+#### 线程同步
+
+*	synchronized同步方法
+*	synchronized同步代码块
+*	volatile实现线程同步
+*	重入锁实现线程同步
+*	局部变量实现线程同步
+*	使用阻塞队列实现线程同步
+*	使用原子变量实现线程同步
