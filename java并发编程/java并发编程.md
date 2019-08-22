@@ -172,7 +172,6 @@ public class MyRunnable implements Runnable{
 	}
 }
 ~~~
-
 ~~~java
 //使用Callable创建一个线程
 class MyCallable implements Callable<Integer>{
@@ -217,7 +216,6 @@ class MyThread extends Thread{
 *	线程的生命周期开销非常高
 *	资源消耗
 
-
 ## <h2 id='4'>volatile关键字</h2>
 
 如果一个字段被声明为volatile类型的话，则JMM保证其在不同的线程下看到的这个变量时一致的
@@ -244,7 +242,6 @@ volatile变量的两大特性
 #### volatile变量规则
 
 *	仅当一个变量参与到包含其他状态变量的不变性条件时，才可以声明为volatile类型
-
 
 ***
 
@@ -489,7 +486,7 @@ compareAndSet(int usual,int want,int update)
 
 ***
 
-## <h2 id='19'>CountDownLatch
+## <h2 id='19'>CountDownLatch</h2>
 支持一个或多个线程等待其他线程完成工作
 
 ~~~java
