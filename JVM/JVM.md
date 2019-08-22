@@ -496,6 +496,8 @@ graph TD
 	*	空间分配担保失败
 	*	JDK1.7之前的永久代空间不足
 
+>可以通过 NewRatio 控制新生代转老年代的比例，通过MaxTenuringThreshold 设置对象进入老年代的年龄阀值
+
 <h3 id='2.6.2'>长期存活的对象将进入老年代</h3>
 
 >若对象在Eden区出生，经过一次MinorGC依然存活，且能够被Survivor区容纳则将其放入Survivor区,并将其**年龄计数器**置为1。在这之后，每经过一次MinorGC，计数器加一，当年龄计数器的值为MaxTenuringThreshold（一般为15）时，将对象放入老年代
